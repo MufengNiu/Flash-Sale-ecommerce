@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src = "./jquery-1.11.0.min.js" type = "text/javascript"></script>
+        <link href="./static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/global/css/components.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css" >
+        <script src="./getHost.js"  type = "text/javascript"></script>
+    </head>
+
+    <body class="login">
+
+        <div class="content">
+
+            <div id="user-info">
+                <button class="btn blue" style="float: right;" id="login_button">Login</button>
+                <button class="btn green" style="float: right;" id="user_info"></button>
+            </div><br>
+
+            <h1 class="form-title" style="text-align: center;"><strong>Upload Product</strong></h1>
+           
+            <div class="form-group">
+                <label class="control-label">Title: </label><br>
+                <input type = "text" placeholder="title" id = "title" name = "title" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Description: </label><br>
+                <input type = "text" placeholder="description" id = "description"  name = "description" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Price: </label><br>
+                <input type = "text" placeholder="price" id = "price"  name = "price" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Stock: </label><br>
+                <input type = "text" placeholder="stock" id = "stock"  name = "stock" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">imgUrl: </label><br>
+                <input type = "text" placeholder="imgUrl" id = "imgUrl"  name = "imgUrl" class="form-control" required>
+            </div>
+
+            <div class="form-actions">
+                <button id = "create_submit" type = "submit" class="btn blue">Upload</button>
+            </div>
+
+
+        </div>
+    </body>
+
+    <script>
+
+        var currUser = {};
+        $("#user_info").on("click",function(){
+            window.location.href="userPage.html?id=" + currUser.id;
+        });
+
+        $("#login_button").on("click",function(){
+            window.location.href = "userLogin.html";
+        });
+
+        jQuery(document).ready(function(){
+
+            //Login State Button
+            var token = window.localStorage["token"];
+            //Reflect to backend: @RequestMapping(value = "/user/GetLoginUser")
+            $.ajax({
+                type:"GET",
+                url:"http://"+ g_host + "/user/GetLoginUser?token="+token,
+                //Allow cross origin
+                xhrFields:{
+                    withCredentials:true
+                },
+                crossDomain: true,
+                success: function(data){
+                    if(data.status === "success"){
+                        $("#login_button").hide();
+                        currUser = data.data;
+                        $("#user_info").text(data.data.name);
+                    }else{
+                        $("#user_info").hide();
+                    }
+                },
+                error: function(data){
+                    alert("Creation Failed : " + data.responseText);
+                }
+            });
+
+            //otp button click event. Send otp request to backend
+            $("#create_submit").on("click",function(){
+
+                var title = $("#title").val();
+                var description = $("#description").val();
+                var price = $("#price").val();
+                var stock = $("#stock").val();
+                var imgUrl = $("#imgUrl").val();
+             
+
+                if(title == null || title === ""){
+                    alert("Title cannot be empty");
+                    return false;
+                }
+                if(description == null || description === ""){
+                    alert("Description cannot be empty");
+                    return false;
+                }
+                if(price == null || price === ""){
+                    alert("price cannot be empty");
+                    return false;
+                }
+                if(stock == null || stock === ""){
+                    alert("Stock cannot be empty");
+                    return false;
+                }
+                if(imgUrl == null || imgUrl === ""){
+                    alert("ImgUrl cannot be empty");
+                    return false;
+                }
+                
+
+                //Reflect to backend: @RequestMapping(value = "/register")
+                $.ajax({
+                    type:"POST",
+                    contentType:"application/x-www-form-urlencoded",
+                    url:"http://"+ g_host + "/product/create",
+                    data: {
+                        "title": title,
+                        "description": description,
+                        "price": price,
+                        "stock": stock,
+                        "imgUrl": imgUrl,
+                    },
+                    //Allow cross origin
+                    xhrFields:{withCredentials:true},
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+                                alert("Product Creation Successful");
+                                window.location.href="listProduct.html";
+                            }else{
+                                alert("Creation Failed : " + data.data.errMsg);
+                        }
+                    },
+                    error: function(data){
+                        alert("Creation Failed : " + data.responseText);
+                    }
+                });
+            });
+            return false;
+        });
+
+    </script>
+
+
+</html>

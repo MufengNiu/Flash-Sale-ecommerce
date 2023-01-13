@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src = "./jquery-1.11.0.min.js" type = "text/javascript"></script>
+        <link href="./static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/global/css/components.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css" >
+        <script src="./getHost.js"  type = "text/javascript"></script>
+    </head>
+
+    <body>
+
+        
+
+        <div class="content" style="text-align: center;">
+
+            <div id="user-info">
+                <button class="btn blue" style="float: left;" onclick="location.href='listProduct.html'">Purchase</button>
+                <button class="btn red" style="float: right;" id="logoff_button">Log Off</button>
+                <button class="btn green" style="float: right;" id="logoff_button" onclick="location.href='productCreation.html'">Create Product</button>
+            </div>
+
+            <div>
+
+                <h1><b>Your Account<b></h1>
+                    
+                <div class="form-group">
+                <label class="control-label">Name: </label><br>
+                <label id = "name" class="form-label" style="font-weight: bold;">
+                </div>
+
+                <div class="form-group">
+                <label class="control-label">Genger: </label><br>
+                <label id = "gender" class="form-label" style="font-weight: bold;">
+                </div>
+
+                <div class="form-group">
+                <label class="control-label">Age: </label><br>
+                <label id = "age" class="form-label" style="font-weight: bold;">
+                </div>
+
+                <div class="form-group">
+                <label class="control-label">Phone: </label><br>
+                <label id = "phone" class="form-label" style="font-weight: bold;">
+                </div>
+            </div>
+
+    
+            <div class = "table-responsive" style="align-self: center;">
+                
+                <h2 class="form-title"> <b>Your Order</b> </h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center;">ID</th>
+                            <th style="text-align: center;">PRODUCT ID</th>
+                            <th style="text-align: center;">AMOUNT</th>
+                            <th style="text-align: center;">PRODUCT PRICE</th>
+                            <th style="text-align: center;">ORDER PRICE</th>
+                            <th style="text-align: center;">IS PROMO</th>
+                            <th style="text-align: center;">View Product</th>
+                        </tr>
+                    </thead>
+                    <tbody id = "container">
+                        
+                    </tbody>
+
+                </table>
+            </div>
+           
+
+        </div>
+    </body>
+
+    <script>
+
+        //get parameter
+        function getParam(paramName) {
+                paramValue = "", isFound = !1;
+                if (this.location.search.indexOf("?") == 0 && this.location.search.indexOf("=") > 1) {
+                     arrSource = unescape(this.location.search).substring(1, this.location.search.length).split("&"), i = 0;
+                     while (i < arrSource.length && !isFound)
+                         arrSource[i].indexOf("=") > 0 && arrSource[i].split("=")[0].toLowerCase() == paramName.toLowerCase() && (paramValue = arrSource[i].split("=")[1], isFound = !0), i++
+                    }
+                return paramValue == "" && (paramValue = null), paramValue
+        }
+
+        
+        //userLogOff
+
+        var orderList = [];
+        var currUser = {};
+        jQuery(document).ready(function(){
+
+            var token = window.localStorage["token"];
+            //Reflect to backend: @RequestMapping(value = "/get")
+            $.ajax({
+                    type:"POST",
+                    contentType:"application/x-www-form-urlencoded",
+                    url:"http://"+ g_host + "/user/get?token="+token,
+                    data: {
+                        "id": getParam("id"),
+                    },
+                    //Allow cross origin
+                    xhrFields:{
+                        withCredentials:true
+                    },
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+
+                                if(data.data.isLogin == 1){
+                                    currUser = data.data;
+                                    loadAccount();
+                                }else{
+                                    alert("Account not login");
+                                    window.location.href = "userLogin.html";
+                                }
+                            }else{
+                                alert("Account info retrive failed");
+                                window.location.href = "userLogin.html";
+                            }
+                    },
+                    error: function(data){
+                        alert("Account info retrive failed");
+                        window.location.href = "userLogin.html";
+                    }
+            });
+
+            //Reflect to backend: @RequestMapping(value = "/getOrdersById")
+            $.ajax({
+                    type:"GET",
+                    url:"http://"+ g_host + "/order/getOrdersById",
+                    data: {
+                        "userId": getParam("id"),
+                    },
+                    //Allow cross origin
+                    xhrFields:{
+                        withCredentials:true
+                    },
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+                                orderList = data.data;
+
+                                if(orderList.length != 0){
+                                    loadOrder();
+                                }
+  
+                            }else{
+                                alert("data STATUS IS FAIL" + data.data.errorMsg);
+                            }
+                    },
+                    error: function(data){
+                        alert("Order info retrive Failed: " + data.responseText);
+                    }
+            });
+
+            $("#logoff_button").on("click",function(){
+
+                var token = window.localStorage["token"];
+                //Reflect to backend: @RequestMapping(value = "/userLogOff")
+                $.ajax({
+                    type:"GET",
+                    url:"http://"+ g_host + "/user/userLogOff?token="+token,
+                    //Allow cross origin
+                    xhrFields:{
+                    withCredentials:true
+                    },
+                    crossDomain: true,
+                    success: function(data){
+                         if(data.status === "success"){
+                            window.location.href = "listProduct.html";
+                        }else{
+                            alert("Log Off failed :" + data.data.errMsg);
+                        }
+                    },
+                    error: function(data){
+                        alert("Log Off failed : " + data.responseText);
+                   }
+               });
+
+            });
+
+            return false;
+        });
+
+        function loadAccount(){
+            $("#name").text(currUser.name);
+            $("#gender").text(currUser.gender);
+            $("#age").text(currUser.age);
+            $("#phone").text(currUser.phone);
+        }
+
+        function loadOrder(){
+
+            for(var i = 0 ; i < orderList.length ; i++){
+                var orderView = orderList[i];
+
+                var isPromo;
+
+                if(orderList[i].isFlashSale == 1){
+                    isPromo = "Yes";
+                }else{
+                    isPromo = "No";
+                }
+               
+                var dom = 
+                        "<tr>" + 
+                        "<td>" + orderView.id+ "</td>" + 
+                        "<td>" +  orderView.productId + "</td>" +
+                        "<td>" + orderView.orderAmount + "</td>" +
+                        "<td> $" + orderView.productPrice + "</td>" + 
+                        "<td> $" + orderView.orderPrice + "</td>" +
+                        "<td>" + isPromo + "</td>" +
+                        "<td> <button data-id = '"+ orderView.productId + "' class = 'viewProduct" + orderView.productId +  "'>View Product</button> </td>"
+                        "</tr>";
+                    
+                $("#container").append($(dom));
+
+                $(".viewProduct" + orderView.productId).on("click",function(e){
+                    window.location.href="getProduct.html?id=" +$(this).data("id");
+                });
+            }
+
+        }
+
+    </script>
+
+
+</html>

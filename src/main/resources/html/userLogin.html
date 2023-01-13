@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src = "./jquery-1.11.0.min.js" type = "text/javascript"></script>
+        <link href="./static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/global/css/components.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css" >
+        <script src="./getHost.js"  type = "text/javascript"></script>
+    </head>
+
+    <body class="login">
+
+        <div class="content">
+
+            <h1 class="form-title">User Login</h1>
+           
+            <div class="form-group">
+                <label class="control-label">Phone Number: </label><br>
+                <input type = "text" placeholder="Enter Your Phone Number" id = "phone" name = "phone" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Password: </label><br>
+                <input type = "password" placeholder="Enter Your password" id = "password"  name = "password" class="form-control">
+            </div>
+
+            <div class="form-actions">
+                <button id = "Register_submit" type = "submit" class="btn blue">Register</button>
+                &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp
+                <button id = "login_submit" type = "submit" class="btn green">Login</button>
+            </div>
+
+        </div>
+    </body>
+
+    <script>
+
+        jQuery(document).ready(function(){
+
+            
+            //Register botton click event
+            $("#Register_submit").on("click" ,function(){
+                window.location.href = "getOpt.html";
+            });
+
+            //Login button click event. 
+            $("#login_submit").on("click",function(){
+
+                var phone = $("#phone").val();
+                var password = $("#password").val();
+                
+                if(phone == null || phone === ""){
+                    alert("Phone cannot be empty");
+                    return false;
+                }
+                
+                if(password == null || password === ""){
+                    alert("Password cannot be empty");
+                    return false;
+                }
+
+                
+                //Reflect to backend: @RequestMapping(value = "/login")
+                $.ajax({
+                    type:"POST",
+                    contentType:"application/x-www-form-urlencoded",
+                    url:"http://"+ g_host + "/user/login",
+                    data: {
+                        "phone": phone,
+                        "password": password,
+                    },
+                    //Allow cross origin
+                    xhrFields:{withCredentials:true},
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+                                
+                                //Store Token in browser
+                                var token = data.data;
+                                window.localStorage["token"] = token;
+                                
+                                window.location.href = "listProduct.html";
+                            }else{
+                                alert("Login Failed : " + data.data.errMsg);
+                            }
+                    },
+                    error: function(data){
+                        alert("Login Failed : " + data.responseText);
+                    }
+                });
+            });
+
+            return false;
+        });
+
+    </script>
+
+
+</html>

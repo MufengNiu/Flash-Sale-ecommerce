@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+
+    <context id="DB2Tables" targetRuntime="MyBatis3">
+        <!--JDBC CONNECTION username and password-->
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://127.0.0.1:3306/seckill"
+                        userId="user1"
+                        password="123456">
+        </jdbcConnection>
+
+        <!--Store Location for DataObject-->
+        <javaModelGenerator targetPackage="com.ecommerce.dataobject" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true" />
+            <property name="trimStrings" value="true" />
+        </javaModelGenerator>
+
+        <!--Store location for mapping XML file-->
+        <sqlMapGenerator targetPackage="mapper"  targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true" />
+        </sqlMapGenerator>
+
+        <!--Store location for dao Mapper object-->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.ecommerce.dao"  targetProject="src/main/java">
+            <property name="enableSubPackages" value="true" />
+        </javaClientGenerator>
+
+        <!--Corresponding table for object name-->
+
+<!--        &lt;!&ndash;User DAO table&ndash;&:gt;-->
+<!--        <table tableName="user_info" domainObjectName="UserDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>-->
+<!--        <table tableName="encr:ypt_password" domainObjectName="UserPasswordDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>-->
+
+<!--        &lt;!&ndash;Product DAO table&ndash;&gt;-->
+<!--        <table tableName="product_info" domainObjectName="ProductDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>-->
+<!--        <table tableName="product_stock" domainObjectName="ProductStockDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>-->
+<!--        -->
+
+<!--        &lt;!&ndash;Order DAO table&ndash;&gt;-->
+<!--       <table tableName="order_info" domainObjectName="OrderDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>-->
+
+        <table tableName="stock_log" domainObjectName="StockLogDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>
+
+        <!--Order sequence info-->
+<!--        <table tableName="order_sequence_info" domainObjectName="SequenceDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table>-->
+        <!-- <table tableName="promo" domainObjectName="PromoDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"> </table> -->
+        
+    </context>
+</generatorConfiguration>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src = "./jquery-1.11.0.min.js" type = "text/javascript"></script>
+        <link href="./static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/global/css/components.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css" >
+        <script src="./getHost.js"  type = "text/javascript"></script>
+    </head>
+
+    <body>
+
+        <div id="user-info">
+            <button class="btn blue" style="float: right;" id="login_button">Login</button>
+            <button class="btn green" style="float: right;" id="user_info"></button>
+        </div>
+
+        <div class="content" style="text-align: center;">
+
+            <h1 class="form-title"> <b>Product List</b> </h1>
+            <div class = "table-responsive">
+
+                <table class="table" style="text-align:center" >
+                    <thead>
+                        <tr >
+                            <th style="text-align: center;">Name</th>
+                            <th style="text-align: center;">Image</th>
+                            <th style="text-align: center;">Descrription</th>
+                            <th style="text-align: center;">Price</th>
+                            <th style="text-align: center;">Stock</th>
+                            <th style="text-align: center;">Sales</th>
+                            <th style="text-align: center;">View</th>
+                        </tr>
+                    </thead>
+                    <tbody id = "container">
+                        
+                    </tbody>
+
+                </table>
+            </div>
+           
+
+        </div>
+    </body>
+
+    <script>
+
+        var productList = [];
+        jQuery(document).ready(function(){
+
+        var currUser = {};
+        $("#user_info").on("click",function(){
+            window.location.href="userPage.html?id=" + currUser.id;
+        });
+
+        $("#login_button").on("click",function(){
+            window.location.href = "userLogin.html";
+        });
+
+        //Login State Button
+        var token = window.localStorage["token"];
+        //Reflect to backend: @RequestMapping(value = "/user/GetLoginUser")
+        $.ajax({
+            type:"GET",
+            url:"http://"+ g_host + "/user/GetLoginUser?token="+token,
+            //Allow cross origin
+            xhrFields:{
+                withCredentials:true
+            },
+            crossDomain: true,
+            success: function(data){
+                    if(data.status === "success"){
+                        $("#login_button").hide();
+                        currUser = data.data;
+                        $("#user_info").text(data.data.name);
+                    }else{
+                        $("#user_info").hide();
+                    }
+            },
+            error: function(data){
+                alert("Creation Failed : " + data.responseText);
+            }
+        });
+
+        //Reflect to backend: @RequestMapping(value = "/getProducts")
+        $.ajax({
+                type:"GET",
+                url:"http://"+ g_host + "/product/getProducts",
+                //Allow cross origin
+                xhrFields:{
+                    withCredentials:true
+                },
+                crossDomain: true,
+                success: function(data){
+                        if(data.status === "success"){
+                            //Obtain Json data from backend, Append dom info
+                            productList = data.data;
+                            reloadDom();   
+                        }else{
+                             alert("Get product list failed : " + data.data.errMsg);
+                        }
+                },
+                error: function(data){
+                     alert("Creation Failed : " + data.responseText);
+                }
+            });
+
+            return false;
+        });
+
+        function reloadDom(){
+            
+            for(var i = 0 ; i < productList.length ; i++){
+                var productDom = productList[i];
+                var dom = 
+                        "<tr>" + 
+                        "<td>" + productDom.title+ "</td>" + 
+                        "<td> <img style = 'width:200px;height:auto;' src ='" + productDom.imgurl + "'/></td>"+ 
+                        "<td>" +  productDom.description + "</td>" +
+                        "<td> $" + productDom.price + "</td>" +
+                        "<td>" + productDom.stock + "</td>" + 
+                        "<td>" + productDom.sales + "</td>" +
+                        "<td> <button data-id = '"+ productDom.id + "' id = 'viewProduct" + productDom.id +  "' class = 'btn blue' >View Product</button> </td>"
+                        "</tr>";
+                    
+                $("#container").append($(dom));
+                
+                //Product detail Page
+                $("#viewProduct" + productDom.id).on("click",function(e){
+                    window.location.href="getProduct.html?id=" +$(this).data("id");
+                });
+            }
+        }
+
+    </script>
+
+
+</html>

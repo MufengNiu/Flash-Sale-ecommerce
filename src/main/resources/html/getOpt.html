@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src = "./jquery-1.11.0.min.js" type = "text/javascript"></script>
+        <link href="./static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/global/css/components.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css" >
+        <script src="./getHost.js"  type = "text/javascript"></script>
+    </head>
+
+    <body class="login">
+
+        <div id = "getOtp" class="content">
+
+            <h1 class="form-title">Get one time password</h1>
+            <div>
+                <label class="control-label">Phone Number</label><br>
+                <div class="form-group">
+                    <input type = "text" placeholder="Enter Your Phone Number" name="phone-number" id = "phone" class="form-control">
+                </div>
+
+                <div class="form-actions">
+                    <button id = "getOtpButton" type = "submit" class="btn blue">Get Opt</button>
+                </div>
+
+            </div>
+
+
+        </div>
+    </body>
+
+    <script>
+
+        jQuery(document).ready(function(){
+
+            //otp button click event. Send otp request to backend
+            $("#getOtpButton").on("click",function(){
+
+                var telephone_input = $("#phone").val();
+                if(telephone_input == null || telephone_input === ""){
+                    alert("Input cannot be empty");
+                    return false;
+                }
+
+                //Map to backend: @RequestMapping(value = "/getotp")
+                $.ajax({
+                    type:"POST",
+                    contentType:"application/x-www-form-urlencoded",
+                    url:"http://"+ g_host + "/user/getotp",
+                    data: {
+                        "phone": $("#phone").val(),
+                    },
+                    //Allow cross origin
+                    xhrFields:{withCredentials:true},
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+                                
+                                //Save otp token to localStorage
+                                var otpView = data.data;
+                                alert("Your OTP is: " + otpView.otp);
+                                window.localStorage["otpToken"] = otpView.otpToken;
+                                
+                                window.location.href = "userRegister.html";
+                            }else{
+                                alert("OTP generation failed : " + data.data.errMsg);
+                        }
+                    },
+                    error: function(data){
+                        alert("OPT SEND FAILED : " + data.responseText);
+                    }
+                });
+            });
+            return false;
+        });
+
+    </script>
+
+
+</html>

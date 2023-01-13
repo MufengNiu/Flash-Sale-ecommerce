@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src = "./jquery-1.11.0.min.js" type = "text/javascript"></script>
+        <link href="./static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/global/css/components.css" rel="stylesheet" type="text/css" >
+        <link href="./static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css" >
+        <script src="./getHost.js"  type = "text/javascript"></script>
+    </head>
+
+    <body class="login">
+
+        <div class="content">
+
+            <div id="user-info">
+                <button class="btn blue" style="float: right;" id="login_button">Login</button>
+                <button class="btn green" style="float: right;" id="user_info"></button>
+            </div>
+            <br>
+            
+            <h1 class="form-title" style="text-align: center;"><b>Product Detail</b></h1>
+           
+            <div class="form-group" id = "promo-date-container">
+                <label style = "color: blue;" id = "promo-status" class="control-label"></label><br>
+                <label style = "color: red;" id = "promo-start-date" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <label id = "title" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Description: </label><br>
+                <label id = "description" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-group" id = "normal_price">
+                <label class="control-label">Price: </label><br>
+                <label id = "price" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-group" id = "promo-price-container">
+                <label class="control-label">Promo Price: </label><br>
+                <label style = "color: red;" id = "promo-price" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Stock: </label><br>
+                <label id = "stock" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <img  style="width:200px;height:auto;" id = "imgurl" class="form-label">
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Sales: </label><br>
+                <label  id = "sales" class="form-label" style="font-weight: bold;">
+            </div>
+
+            <div class="form-actions">
+                <button class="btn blue" id="submit_order" type="submit">Purchase</button>
+                <button class="btn red" id="submit_kill" type="submit">BUY</button>
+            </div>
+
+        
+        </div>
+    </body>
+
+    <script>
+       
+       //get parameter
+        function getParam(paramName) {
+            paramValue = "", isFound = !1;
+            if (this.location.search.indexOf("?") == 0 && this.location.search.indexOf("=") > 1) {
+                arrSource = unescape(this.location.search).substring(1, this.location.search.length).split("&"), i = 0;
+                while (i < arrSource.length && !isFound)
+                    arrSource[i].indexOf("=") > 0 && arrSource[i].split("=")[0].toLowerCase() == paramName.toLowerCase() && (paramValue = arrSource[i].split("=")[1], isFound = !0), i++
+                }
+            return paramValue == "" && (paramValue = null), paramValue
+        }
+
+        var currUser = {};
+        $("#user_info").on("click",function(){
+            window.location.href="userPage.html?id=" + currUser.id;
+        });
+
+        $("#login_button").on("click",function(){
+            window.location.href = "userLogin.html";
+        });
+
+    
+        var productDom = {};
+        jQuery(document).ready(function(){
+
+            //Login State Button
+            var token = window.localStorage["token"];
+            //Reflect to backend: @RequestMapping(value = "/user/GetLoginUser")
+            $.ajax({
+                type:"GET",
+                url:"http://"+ g_host + "/user/GetLoginUser?token="+token,
+                //Allow cross origin
+                xhrFields:{
+                    withCredentials:true
+                },
+                crossDomain: true,
+                success: function(data){
+                        if(data.status === "success"){
+                            $("#login_button").hide();
+                            currUser = data.data;
+                            $("#user_info").text(data.data.name);
+                        }else{
+                            $("#user_info").hide();
+                        }
+                },
+                error: function(data){
+                    alert("Creation Failed : " + data.responseText);
+                }
+            });
+
+            //Reflect to backend: @RequestMapping(value = "/get")
+            //Load Single product info
+            $.ajax({
+                type:"GET",
+                url:"http://"+ g_host + "/product/get",
+                data: {
+                    "id": getParam("id"),
+                },
+                //Allow cross origin
+                xhrFields:{withCredentials:true},
+                crossDomain: true,
+                success: function(data){
+                        if(data.status === "success"){
+                            productDom = data.data;
+                            uploadDom();
+
+                            //Execute every second
+                            setInterval(uploadDom,1000);
+                        }else{
+                            alert("Product Info Get Failed : " + data.data.errMsg);
+                    }
+                },
+                error: function(data){
+                    alert("Product Info Get Failed : " + data.responseText);
+                }
+            });
+
+            //Normal purchase
+            $("#submit_order").on("click",function(){
+
+                var token = window.localStorage["token"];
+                if(token == null){
+                    alert("User not login");
+                    window.location.href = "userLogin.html";
+                    return false;
+                }
+                //Reflect to backend: @RequestMapping(value = "/order/placeOrder")
+                $.ajax({
+                    type:"POST",
+                    contentType:"application/x-www-form-urlencoded",
+                    url:"http://"+ g_host + "/order/placeOrder?token=" + token,
+                    data: {
+                        "productId": productDom.id,
+                        "orderAmount": 1,
+                    },
+                    //Allow cross origin
+                    xhrFields:{withCredentials:true},
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+                                alert("Purchase Successful");
+                                window.location.reload();
+                            }else{
+                                alert("Purchase failed : " + data.data.errMsg);
+                                if(data.data.errCode == 10008){
+                                    window.location.href = "userLogin.html"
+                                }
+                        }
+                    },
+                    error: function(data){
+                        alert("Purchase failed : " + data.responseText);
+                    }
+                });
+            });
+
+            //Flash Sell Purchase
+            $("#submit_kill").on("click",function(){
+
+                var token = window.localStorage["token"];
+                if(token == null){
+                    alert("User not login");
+                    window.location.href = "userLogin.html";
+                    return false;
+                }
+                
+                //Reflect to backend: @RequestMapping(value = "/order/generateFlashSaleToken")
+                //Generarte and store flashSale token
+                $.ajax({
+                    type:"POST",
+                    contentType:"application/x-www-form-urlencoded",
+                    url:"http://"+ g_host + "/order/generateFlashSaleToken?token="+token,
+                    data: {
+                        "productId": productDom.id,
+                        "promoId" : productDom.promoId,
+                    },
+                    //Allow cross origin
+                    xhrFields:{withCredentials:true},
+                    crossDomain: true,
+                    success: function(data){
+                            if(data.status === "success"){
+                                var promoToken = data.data;
+                                //Reflect to backend: @RequestMapping(value = "/order/placeFlashOrder")
+                            $.ajax({
+                                type:"POST",
+                                contentType:"application/x-www-form-urlencoded",
+                                url:"http://"+ g_host + "/order/placeFlashOrder?token="+token,
+                                data: {
+                                    "productId": productDom.id,
+                                    "orderAmount": 1,
+                                    "promoId" : productDom.promoId,
+                                    "promoToken" : promoToken,
+                                },
+                                //Allow cross origin
+                                xhrFields:{withCredentials:true},
+                                crossDomain: true,
+                                success: function(data){
+                                        if(data.status === "success"){
+                                            alert("Flash Purchase Successful");
+                                            window.location.reload();
+                                        }else{
+                                            alert("Flash Purchase failed : " + data.data.errMsg);
+                                            if(data.data.errCode == 10008){
+                                                window.location.href = "userLogin.html"
+                                            }
+                                    }
+                                },
+                                error: function(data){
+                                    alert("Flash Purchase failed : " + data.responseText);
+                                }
+                            });
+                            }else{
+                                alert("Flash Sale Token generate failed : " + data.data.errMsg);
+                            }
+                    },
+                    error: function(data){
+                        alert("Flash Sale Token generate failed : " + data.responseText);
+                    }
+                });
+
+            });
+
+            return false;
+        });
+        
+        function uploadDom(){
+            $("#title").text(productDom.title);
+            $("#description").text(productDom.description);
+            $("#price").text("$" + productDom.price);
+            $("#stock").text(productDom.stock);
+            $("#imgurl").attr("src",productDom.imgurl);
+            $("#sales").text(productDom.sales);
+            if(productDom.promoStatus == 1){
+
+                var startTime = productDom.promoStartTime.replace(new RegExp("-", "gm"), "/");
+                startTime = (new Date(startTime)).getTime();
+                var currTime = Date.parse(new Date());
+                var delta = (startTime - currTime) / 1000;
+
+                if(delta <= 0){
+                    //Start
+                    productDom.promoStatus = 2;
+                    uploadDom()
+                }
+
+                //Incoming
+                $("#promo-start-date").text("Flash sale start at : " + productDom.promoStartTime + " CountDown:    " + delta + " s");
+                $("#promo-price").text(productDom.promoPrice);
+                $("#submit_kill").hide();
+
+            }else if(productDom.promoStatus == 2){
+                //During promo
+                $("#promo-start-date").text("Flash Sale in progress");
+                $("#promo-price").text(productDom.promoPrice);
+
+                $("#normal_price").hide();
+                $("#submit_order").hide();
+            }else{
+
+                $("#promo-start-date").text("No promo event");
+                $("#promo-price").text("No promo event");
+                $("#submit_kill").hide();
+            }
+        }
+        
+       
+    </script>
+
+
+</html>
